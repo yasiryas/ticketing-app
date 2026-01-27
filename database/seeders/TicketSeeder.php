@@ -16,15 +16,13 @@ class TicketSeeder extends Seeder
     {
         $statuses = ['open', 'in_progress', 'closed'];
         $users = User::all();
-        foreach ($users as $user) {
-            for ($i = 1; $i <= 5; $i++) {
-                Ticket::create([
-                    'title' => "Sample Ticket {$i} for {$user->name}",
-                    'description' => "This is a description for Sample Ticket {$i} assigned to {$user->name}.",
-                    'status' => $statuses[array_rand($statuses)],
-                    'user_id' => $user->id,
-                ]);
-            }
+        foreach (range(1, 10) as $i) {
+            Ticket::create([
+                'title' => "Sample Ticket Title $i",
+                'description' => "This is a description for ticket number $i.",
+                'status' => $statuses[array_rand($statuses)],
+                'user_id' => $users->random()->id,
+            ]);
         }
     }
 }
