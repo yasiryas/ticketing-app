@@ -24,7 +24,7 @@
                             <td>
                                 <span
                                     class="px-2 py-1 rounded text-white
-                        {{ $ticket->status == 'open' ? 'bg-red-500' : ($ticket->status == 'progress' ? 'bg-yellow-500' : 'bg-green-600') }}">
+                        {{ $ticket->status == 'open' ? 'bg-blue-500' : ($ticket->status == 'in_progress' ? 'bg-yellow-500' : 'bg-green-600') }}">
                                     {{ ucfirst($ticket->status) }}
                                 </span>
                             </td>

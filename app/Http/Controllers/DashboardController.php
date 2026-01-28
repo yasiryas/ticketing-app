@@ -13,12 +13,25 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        $total = Ticket::count() ?: 1;
+
+        $open = Ticket::where('status', 'open')->count();
+        $in_progress =  Ticket::where('status', 'in_progress')->count();
+        $closed = Ticket::where('status', 'closed')->count();
+
         return view('dashboard', [
-            'total' => Ticket::count(),
-            'open' => Ticket::where('status', 'open')->count(),
-            'progress' => Ticket::where('status', 'in_progress')->count(),
-            'closed' => Ticket::where('status', 'closed')->count(),
+            'title' => 'Dashboard',
+            'total' => $total,
+            'open' => $open,
+            'in_progress' => $in_progress,
+            'closed' => $closed,
             'latestTickets' => Ticket::latest()->take(5)->get(),
+            'progress' => [
+                'open' => round(($open / $total) * 100),
+                'in_progress' => round(($in_progress / $total) * 100),
+                'closed' => round(($closed / $total) * 100),
+            ]
+
         ]);
     }
 
