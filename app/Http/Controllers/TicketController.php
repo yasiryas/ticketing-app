@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Ticket;
 use Illuminate\Http\Request;
+use App\Models\TicketReply;
 
 class TicketController extends Controller
 {
@@ -50,7 +51,12 @@ class TicketController extends Controller
      */
     public function show(Ticket $ticket)
     {
-        return view('tickets.show', compact('ticket'));
+        $ticket->load('replies.user');
+
+        return view('tickets.show', [
+            'title' => 'Detail Ticket',
+            'ticket' => $ticket,
+        ]);
     }
 
     /**
@@ -75,5 +81,23 @@ class TicketController extends Controller
     public function destroy(Ticket $ticket)
     {
         //
+    }
+
+    public function reply(Request $request, Ticket $ticket)
+    {
+        $request->validate([
+            'reply' => 'required|string',
+        ]);
+
+        $ticket->replies()->create([
+            'user_id' => auth()->id(),
+            'reply' => $request->reply,
+        ]);
+
+        if (auth()->user()->role === 'admin' && $ticket->status === 'open') {
+            $ticket->update(['status' => 'in_progress']);
+        }
+
+        return redirect()->route('tickets.show', $ticket)->with('success', 'Reply added successfully.');
     }
 }
