@@ -21,6 +21,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('tickets', TicketController::class);
     Route::post('tickets/{ticket}/reply', [TicketController::class, 'reply'])->name('tickets.reply');
     Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
+    Route::resource('units', \App\Http\Controllers\UnitController::class);
 });
 
 require __DIR__ . '/auth.php';

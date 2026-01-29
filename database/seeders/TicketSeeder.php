@@ -22,6 +22,7 @@ class TicketSeeder extends Seeder
                 'description' => "This is a description for ticket number $i.",
                 'status' => $statuses[array_rand($statuses)],
                 'user_id' => $users->random()->id,
+                'unit_id' => rand(1, 3), // Assuming there are 3 units seeded
             ]);
         }
     }

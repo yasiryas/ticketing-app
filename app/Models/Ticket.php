@@ -11,6 +11,7 @@ class Ticket extends Model
         'description',
         'status',
         'user_id',
+        'unit_id',
     ];
 
     public function user()
@@ -21,5 +22,10 @@ class Ticket extends Model
     public function replies()
     {
         return $this->hasMany(TicketReply::class);
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class);
     }
 }
