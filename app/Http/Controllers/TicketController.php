@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use App\Models\TicketReply;
+use Illuminate\Support\Facades\Auth;
 
 class TicketController extends Controller
 {
@@ -40,7 +41,7 @@ class TicketController extends Controller
             'title' => $request->title,
             'description' => $request->description,
             'status' => $request->status,
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
         ]);
 
         return redirect()->route('tickets.index')->with('success', 'Ticket created successfully.');
@@ -90,11 +91,11 @@ class TicketController extends Controller
         ]);
 
         $ticket->replies()->create([
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
             'reply' => $request->reply,
         ]);
 
-        if (auth()->user()->role === 'admin' && $ticket->status === 'open') {
+        if (Auth::user()->role === 'admin' && $ticket->status === 'open') {
             $ticket->update(['status' => 'in_progress']);
         }
 
