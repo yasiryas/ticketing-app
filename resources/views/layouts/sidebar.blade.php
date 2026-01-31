@@ -12,8 +12,7 @@
         </div>
 
         <!-- Toggle -->
-        <button @click="sidebarOpen = !sidebarOpen"
-            class="px-1 py-3 text-gray-600 hover:text-gray-500 hover:text-indigo-600">
+        <button @click="toggleSidebar" class="px-1 py-3 text-gray-600 hover:text-gray-500 hover:text-indigo-600">
             <i class="fa-solid fa-bars"></i>
         </button>
     </div>
@@ -66,15 +65,6 @@
                 <p class="text-xs text-gray-500">{{ auth()->user()->email }}</p>
             </div>
         </div>
-
-        {{-- <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button
-                class="flex items-center gap-3 px-4 py-3 rounded-lg transition bg-indigo-50  text-gray-600 hover:text-white hover:bg-indigo-600 w-full">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span x-show="sidebarOpen">Logout</span>
-            </button>
-        </form> --}}
 
         <button x-data x-on:click="$dispatch('open-modal','confirm-logout')"
             class="flex items-center gap-3 px-4 py-3 rounded-lg transition bg-indigo-50  text-gray-600 hover:text-white hover:bg-indigo-600 w-full">

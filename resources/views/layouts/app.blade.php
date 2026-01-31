@@ -9,7 +9,14 @@
 
 </head>
 
-<body x-data="{ sidebarOpen: true }" class="bg-gray-100">
+<body x-data="{
+    sidebarOpen: localStorage.getItem('sidebarOpen') === 'true' ? true : false,
+
+    toggleSidebar() {
+        this.sidebarOpen = !this.sidebarOpen;
+        localStorage.setItem('sidebarOpen', this.sidebarOpen);
+    }
+}" class="bg-gray-100">
 
     <div class="flex min-h-screen">
 

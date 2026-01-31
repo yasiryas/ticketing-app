@@ -11,7 +11,7 @@
 
         <div class="bg-white shadow rounded">
             <table class="w-full">
-                <thead class="bg-gray-100">
+                <thead class="">
                     <tr>
                         <th class="p-3 text-left">Judul</th>
                         <th>Status</th>

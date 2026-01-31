@@ -15,41 +15,28 @@
         @endif
 
         <div class="bg-white rounded-xl shadow-sm">
-            <table class="w-full text-sm">
-                <thead class="bg-gray-50">
+            <x-table>
+                <x-slot name="head">
                     <tr>
                         <th class="p-3 text-left">Nama Unit</th>
-                        <th class="p-3 text-right">Aksi</th>
+                        <th class="text-center">Deskripsi</th>
+                        <th class="text-center">Aksi</th>
                     </tr>
-                </thead>
-                <tbody>
+                </x-slot>
+                <x-slot name="body">
                     @foreach ($units as $unit)
                         <tr class="border-t">
                             <td class="p-3">{{ $unit->name }}</td>
-                            <td class="p-3 text-right space-x-2">
-                                <a href="{{ route('units.edit', $unit) }}" class="text-indigo-600 text-sm">
-                                    Edit
+                            <td class="text-center">{{ $unit->description ?? '-' }}</td>
+                            <td class="text-center">
+                                <a href="{{ route('units.show', $unit) }}" class="text-indigo-600 hover:underline">
+                                    Detail
                                 </a>
-                                <form action="{{ route('units.destroy', $unit) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="text-red-500 text-sm" onclick="return confirm('Hapus unit ini?')">
-                                        Hapus
-                                    </button>
-                                </form>
                             </td>
                         </tr>
                     @endforeach
-
-                    @if ($units->isEmpty())
-                        <tr>
-                            <td colspan="2" class="p-4 text-center text-gray-400">
-                                Belum ada unit
-                            </td>
-                        </tr>
-                    @endif
-                </tbody>
-            </table>
+                </x-slot>
+            </x-table>
         </div>
     </div>
 </x-app-layout>
