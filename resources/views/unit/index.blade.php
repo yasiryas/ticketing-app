@@ -2,9 +2,10 @@
     <div class="max-w-5xl mx-auto py-6">
         <div class="flex justify-between mb-4">
             <h2 class="text-lg font-semibold">Unit</h2>
-            <a href="{{ route('units.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm">
+            <button x-data x-on:click="$dispatch('open-modal', 'create-unit')"
+                class="bg-indigo-600 text-white px-4 py-2 rounded-lg">
                 + Tambah Unit
-            </a>
+            </button>
         </div>
 
         @if (session('success'))
@@ -52,3 +53,38 @@
         </div>
     </div>
 </x-app-layout>
+
+<!-- Modal -->
+<x-modal name="create-unit">
+    <div class="p-6">
+        <div class="flex justify-between items-center ">
+            <h2 class="text-lg font-semibold mb-2">Tambah Unit</h2>
+            <button type="button" x-on:click="$dispatch('close-modal', 'create-unit')" class="px-4 py-2 text-gray-600">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <form method="POST" action="{{ route('units.store') }}">
+            @csrf
+
+            <div class="mb-1">
+                <label class="text-sm text-gray-600">Nama Unit</label>
+                <input type="text" name="name" class="w-full mt-1 border rounded-lg p-2" required>
+            </div>
+            <div class="mb-1">
+                <label class="text-sm  text-gray-600 mt-4">Deskripsi</label>
+                <textarea name="description" class="w-full mt-1 border rounded-lg p-2" rows="4"></textarea>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2">
+                <button type="button" x-on:click="$dispatch('close-modal', 'create-unit')"
+                    class="px-4 py-2 text-gray-600 rounded-lg border">
+                    Batal
+                </button>
+
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg">
+                    Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</x-modal>
