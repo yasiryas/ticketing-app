@@ -80,4 +80,15 @@ class UnitController extends Controller
 
         return redirect()->route('units.index')->with('success', 'Unit deleted successfully.');
     }
+
+    public function data(Request $request)
+    {
+        $search = $request->get('search');
+
+        $units = Unit::when($search, function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%");
+        })->latest()->paginate(10);
+
+        return response()->json($units);
+    }
 }

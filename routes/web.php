@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\UnitController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -21,7 +22,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('tickets', TicketController::class);
     Route::post('tickets/{ticket}/reply', [TicketController::class, 'reply'])->name('tickets.reply');
     Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
-    Route::resource('units', \App\Http\Controllers\UnitController::class);
+    Route::resource('units', UnitController::class);
+    Route::get('/units-data', [UnitController::class, 'data'])->name('units.data');
 });
 
 require __DIR__ . '/auth.php';
