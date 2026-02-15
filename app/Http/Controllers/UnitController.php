@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Unit;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class UnitController extends Controller
 {
@@ -31,7 +32,7 @@ class UnitController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|unique|string|max:255',
             'description' => 'nullable|string',
         ]);
 
@@ -56,20 +57,6 @@ class UnitController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        //
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
-
-        $unit = Unit::findOrFail($id);
-        $unit->update($request->only('name', 'description'));
-
-        return redirect()->route('units.index')->with('success', 'Unit updated successfully.');
-    }
-
     /**
      * Remove the specified resource from storage.
      */
@@ -92,11 +79,27 @@ class UnitController extends Controller
         return response()->json($units);
     }
 
-    public function updateUnit(Request $request, Unit $unit)
+    public function update(Request $request, Unit $unit)
     {
+        $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('units', 'name')->ignore($unit->id)
+            ],
+            'description' => 'nullable|string',
+        ], [
+            'name.unique' => 'Ups, nama unit sudah digunakan. Silakan pilih nama lain.',
+        ]);
+
         $unit->update($request->only('name', 'description'));
-        return response()->json(['message' => 'Unit updated successfully']);
+
+        return response()->json([
+            'message' => 'Unit updated successfully'
+        ]);
     }
+
 
     public function destroyUnit(Unit $unit)
     {

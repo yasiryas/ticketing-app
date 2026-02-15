@@ -1,10 +1,5 @@
 <x-app-layout>
 
-    {{-- TOAST --}}
-    <div x-data="toast()" x-init="init()" x-show="show" x-transition
-        class="fixed bottom-5 right-5 z-50 bg-green-600 text-white px-5 py-3 rounded-lg shadow-lg">
-        <span x-text="message"></span>
-    </div>
 
     {{-- DETAIL HANDLER GLOBAL --}}
     <div x-data="unitDetail()" @open-detail.window="open($event.detail)"></div>
@@ -151,28 +146,68 @@
                     this.name = data.name
                     this.description = data.description
                     this.editMode = false
+
+                    console.log(this.id)
+
                     this.$dispatch('open-modal', 'detail-unit')
                 },
 
                 save() {
                     fetch(`/units/${this.id}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify({
-                            name: this.name,
-                            description: this.description
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json', // 🔥 WAJIB
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({
+                                name: this.name,
+                                description: this.description
+                            })
                         })
-                    }).then(() => {
-                        window.dispatchEvent(new CustomEvent('toast', {
-                            detail: 'Unit updated!'
-                        }))
+                        .then(async res => {
 
-                        this.$dispatch('close-modal', 'detail-unit')
-                        window.dispatchEvent(new CustomEvent('refresh-units'))
-                    })
+                            // cek dulu content type
+                            const contentType = res.headers.get('content-type')
+
+                            if (!contentType || !contentType.includes('application/json')) {
+                                throw {
+                                    message: 'Server tidak mengembalikan JSON'
+                                }
+                            }
+
+                            const data = await res.json()
+
+                            if (!res.ok) {
+                                throw data
+                            }
+
+                            window.dispatchEvent(new CustomEvent('toast', {
+                                detail: {
+                                    message: 'Unit berhasil diupdate',
+                                    type: 'success'
+                                }
+                            }))
+
+                            this.$dispatch('close-modal', 'detail-unit')
+                            window.dispatchEvent(new CustomEvent('refresh-units'))
+                        })
+                        .catch(err => {
+                            let msg = 'Gagal menyimpan'
+
+                            if (err.errors?.name) {
+                                msg = err.errors.name[0]
+                            } else if (err.message) {
+                                msg = err.message
+                            }
+
+                            window.dispatchEvent(new CustomEvent('toast', {
+                                detail: {
+                                    message: msg,
+                                    type: 'error'
+                                }
+                            }))
+                        })
                 },
 
                 confirmDelete() {
@@ -194,6 +229,7 @@
                         window.dispatchEvent(new CustomEvent('close-modal', {
                             detail: 'confirm-delete'
                         }))
+
                         window.dispatchEvent(new CustomEvent('close-modal', {
                             detail: 'detail-unit'
                         }))
@@ -203,21 +239,6 @@
                         }))
 
                         window.dispatchEvent(new CustomEvent('refresh-units'))
-                    })
-                }
-            }
-        }
-
-        function toast() {
-            return {
-                show: false,
-                message: '',
-
-                init() {
-                    window.addEventListener('toast', e => {
-                        this.message = e.detail
-                        this.show = true
-                        setTimeout(() => this.show = false, 2500)
                     })
                 }
             }
