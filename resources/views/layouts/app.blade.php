@@ -18,6 +18,13 @@
     }
 }" class="bg-gray-100">
 
+    {{-- toast --}}
+    <div x-data="toast()" x-show="show" x-transition
+        class="fixed bottom-5 right-5 bg-green-600 text-white px-5 py-3 rounded-lg shadow-lg">
+        <span x-text="message"></span>
+    </div>
+
+
     <div class="flex min-h-screen">
 
         <!-- Sidebar -->

@@ -24,6 +24,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
     Route::resource('units', UnitController::class);
     Route::get('/units-data', [UnitController::class, 'data'])->name('units.data');
+    Route::put('/units/{unit}', [UnitController::class, 'updateUnit']);
+    Route::delete('/units/{unit}', [UnitController::class, 'destroyUnit']);
 });
 
 require __DIR__ . '/auth.php';

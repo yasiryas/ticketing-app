@@ -91,4 +91,16 @@ class UnitController extends Controller
 
         return response()->json($units);
     }
+
+    public function updateUnit(Request $request, Unit $unit)
+    {
+        $unit->update($request->only('name', 'description'));
+        return response()->json(['message' => 'Unit updated successfully']);
+    }
+
+    public function destroyUnit(Unit $unit)
+    {
+        $unit->delete();
+        return response()->json(['message' => 'Unit deleted successfully']);
+    }
 }
