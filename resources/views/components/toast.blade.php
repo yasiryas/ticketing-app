@@ -1,4 +1,4 @@
-<div x-data="toastComponent()" x-init="init()" x-show="show" x-transition x-cloak
+<div x-data="toast" x-init="init()" x-show="show" x-transition x-cloak
     class="fixed top-6 left-1/2 -translate-x-1/2 z-[9999]">
     <div :class="typeClasses"
         class="px-6 py-3 rounded-xl shadow-xl backdrop-blur-lg border text-white font-medium min-w-[250px] text-center">
@@ -6,7 +6,7 @@
     </div>
 </div>
 
-<script>
+{{-- <script>
     function toastComponent() {
         return {
             show: false,
@@ -51,4 +51,4 @@
             }
         }
     }
-</script>
+</script> --}}
