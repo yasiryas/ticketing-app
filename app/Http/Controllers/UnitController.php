@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Yajra\DataTables\Facades\DataTables;
 
 class UnitController extends Controller
 {
@@ -13,9 +14,10 @@ class UnitController extends Controller
      */
     public function index()
     {
-        return view('unit.index', [
-            'units' => Unit::all(),
-        ]);
+        // return view('unit.index', [
+        //     'units' => Unit::all(),
+        // ]);
+        return view('unit.index');
     }
 
     /**
@@ -32,11 +34,16 @@ class UnitController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|unique|string|max:255',
+            'name' => 'required|unique:units,name|string|max:255',
             'description' => 'nullable|string',
         ]);
 
         Unit::create($request->only('name', 'description'));
+
+        // Check if AJAX request
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Unit created successfully']);
+        }
 
         return redirect()->route('units.index')->with('success', 'Unit created successfully.');
     }
@@ -65,18 +72,45 @@ class UnitController extends Controller
         $unit = Unit::findOrFail($id);
         $unit->delete();
 
+        // Check if AJAX request
+        if (request()->expectsJson()) {
+            return response()->json(['message' => 'Unit deleted successfully']);
+        }
+
         return redirect()->route('units.index')->with('success', 'Unit deleted successfully.');
     }
 
     public function data(Request $request)
     {
-        $search = $request->get('search');
+        $query = Unit::query();
 
-        $units = Unit::when($search, function ($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%");
-        })->latest()->paginate(10);
 
-        return response()->json($units);
+        // Search functionality
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Get per_page parameter (default 10)
+        $perPage = $request->per_page ?? 10;
+
+        // Paginate the results
+        $units = $query->paginate($perPage);
+
+        return response()->json([
+            'data' => $units->items(),
+            'meta' => [
+                'current_page' => $units->currentPage(),
+                'from' => $units->firstItem(),
+                'to' => $units->lastItem(),
+                'last_page' => $units->lastPage(),
+                'path' => $units->path(),
+                'total' => $units->total(),
+            ]
+        ]);
     }
 
     public function update(Request $request, Unit $unit)
