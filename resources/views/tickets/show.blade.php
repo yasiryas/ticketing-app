@@ -69,7 +69,7 @@
                             </div>
 
                             <p class="text-sm text-gray-700 whitespace-pre-line">
-                                {{ $reply->message }}
+                                {{ $reply->reply }}
                             </p>
                         </div>
                     @empty
@@ -83,7 +83,7 @@
                 <form method="POST" action="{{ route('tickets.reply', $ticket) }}">
                     @csrf
 
-                    <textarea name="message" rows="3" class="w-full border rounded-lg p-3 text-sm focus:ring focus:ring-indigo-200"
+                    <textarea name="reply" rows="3" class="w-full border rounded-lg p-3 text-sm focus:ring focus:ring-indigo-200"
                         placeholder="Tulis balasan..." required></textarea>
 
                     <div class="flex justify-end mt-2">

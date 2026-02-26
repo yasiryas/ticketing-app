@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Ticket;
 use Illuminate\Http\Request;
-use App\Models\TicketReply;
 use Illuminate\Support\Facades\Auth;
 
 class TicketController extends Controller
@@ -34,19 +33,30 @@ class TicketController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'status' => 'required|in:open,in_progress,closed',
+            'status' => 'required|in:open,progress,closed',
+            'unit_id' => 'nullable|exists:units,id',
         ]);
 
         Ticket::create([
             'title' => $request->title,
             'description' => $request->description,
             'status' => $request->status,
+            'unit_id' => $request->unit_id,
             'user_id' => Auth::id(),
         ]);
 
-        return redirect()->route('tickets.index')->with('success', 'Ticket created successfully.');
+        return redirect()->route('tickets.index')->with('success', 'Ticket Berhasil dibuat.');
     }
 
+
+    public function data(Request $request)
+    {
+        return response()->json([
+            'open' => Ticket::with('unit')->where('status', 'open')->latest()->get(),
+            'progress' => Ticket::with('unit')->where('status', 'in_progress')->latest()->get(),
+            'closed' => Ticket::with('unit')->where('status', 'closed')->latest()->get(),
+        ]);
+    }
     /**
      * Display the specified resource.
      */
@@ -73,7 +83,20 @@ class TicketController extends Controller
      */
     public function update(Request $request, Ticket $ticket)
     {
-        //
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'status' => 'required|in:open,in_progress,closed',
+            'unit_id' => 'nullable|exists:units,id',
+        ]);
+
+        $ticket->update($request->only(['title', 'description', 'status', 'unit_id']));
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Ticket updated successfully']);
+        }
+
+        return redirect()->route('tickets.index')->with('success', 'Ticket updated successfully');
     }
 
     /**
@@ -81,7 +104,13 @@ class TicketController extends Controller
      */
     public function destroy(Ticket $ticket)
     {
-        //
+        $ticket->delete();
+
+        if (request()->expectsJson()) {
+            return response()->json(['message' => 'Ticket deleted successfully']);
+        }
+
+        return redirect()->route('tickets.index')->with('success', 'Ticket deleted successfully');
     }
 
     public function reply(Request $request, Ticket $ticket)
@@ -92,7 +121,7 @@ class TicketController extends Controller
 
         $ticket->replies()->create([
             'user_id' => Auth::id(),
-            'reply' => $request->reply,
+            'reply' => $request->input('reply'),
         ]);
 
         if (Auth::user()->role === 'admin' && $ticket->status === 'open') {
