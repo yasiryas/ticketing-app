@@ -33,14 +33,14 @@ class TicketController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'status' => 'required|in:open,progress,closed',
+            'status' => 'nullable|in:open,in_progress,closed',
             'unit_id' => 'nullable|exists:units,id',
         ]);
 
         Ticket::create([
             'title' => $request->title,
             'description' => $request->description,
-            'status' => $request->status,
+            'status' => $request->status ?? 'open',
             'unit_id' => $request->unit_id,
             'user_id' => Auth::id(),
         ]);
