@@ -4,19 +4,28 @@ namespace App\Http\Controllers;
 
 use App\Models\Unit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 
 class UnitController extends Controller
 {
+    public function __construct()
+    {
+        // Only admin can access Unit management
+        $this->middleware(function ($request, $next) {
+            if (!Auth::user()->isAdmin()) {
+                abort(403, 'Unauthorized access. Admin only.');
+            }
+            return $next($request);
+        });
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        // return view('unit.index', [
-        //     'units' => Unit::all(),
-        // ]);
         return view('unit.index');
     }
 
@@ -40,7 +49,6 @@ class UnitController extends Controller
 
         Unit::create($request->only('name', 'description'));
 
-        // Check if AJAX request
         if ($request->expectsJson()) {
             return response()->json(['message' => 'Unit created successfully']);
         }
@@ -64,55 +72,6 @@ class UnitController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        $unit = Unit::findOrFail($id);
-        $unit->delete();
-
-        // Check if AJAX request
-        if (request()->expectsJson()) {
-            return response()->json(['message' => 'Unit deleted successfully']);
-        }
-
-        return redirect()->route('units.index')->with('success', 'Unit deleted successfully.');
-    }
-
-    public function data(Request $request)
-    {
-        $query = Unit::query();
-
-
-        // Search functionality
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('description', 'like', '%' . $search . '%');
-            });
-        }
-
-        // Get per_page parameter (default 10)
-        $perPage = $request->per_page ?? 10;
-
-        // Paginate the results
-        $units = $query->paginate($perPage);
-
-        return response()->json([
-            'data' => $units->items(),
-            'meta' => [
-                'current_page' => $units->currentPage(),
-                'from' => $units->firstItem(),
-                'to' => $units->lastItem(),
-                'last_page' => $units->lastPage(),
-                'path' => $units->path(),
-                'total' => $units->total(),
-            ]
-        ]);
-    }
-
     public function update(Request $request, Unit $unit)
     {
         $request->validate([
@@ -134,6 +93,48 @@ class UnitController extends Controller
         ]);
     }
 
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        $unit = Unit::findOrFail($id);
+        $unit->delete();
+
+        if (request()->expectsJson()) {
+            return response()->json(['message' => 'Unit deleted successfully']);
+        }
+
+        return redirect()->route('units.index')->with('success', 'Unit deleted successfully.');
+    }
+
+    public function data(Request $request)
+    {
+        $query = Unit::query();
+
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
+
+        $perPage = $request->per_page ?? 10;
+        $units = $query->paginate($perPage);
+
+        return response()->json([
+            'data' => $units->items(),
+            'meta' => [
+                'current_page' => $units->currentPage(),
+                'from' => $units->firstItem(),
+                'to' => $units->lastItem(),
+                'last_page' => $units->lastPage(),
+                'path' => $units->path(),
+                'total' => $units->total(),
+            ]
+        ]);
+    }
 
     public function destroyUnit(Unit $unit)
     {

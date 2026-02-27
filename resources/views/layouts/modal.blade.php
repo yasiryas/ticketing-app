@@ -45,11 +45,6 @@
             Create Ticket
         </h2>
 
-        <input type="text" placeholder="Judul Ticket" class="w-full border rounded-lg px-4 py-2 mb-3"
-            x-model="form.title">
-
-        <textarea placeholder="Deskripsi" class="w-full border rounded-lg px-4 py-2 mb-3" x-model="form.description"></textarea>
-
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
             <div class="relative">
@@ -64,7 +59,7 @@
                 </button>
 
                 <div x-show="unitDropdownOpen" x-transition.origin-top.duration-200ms
-                    class="absolute z-[60] w-full mt-1 bg-white border rounded-lg shadow-xl max-h-60 overflow-hidden"
+                    class="absolute z-[9999] w-full mt-1 bg-white border rounded-lg shadow-xl max-h-60 overflow-visible"
                     style="display: none;">
                     <div class="p-2 border-b bg-gray-50">
                         <div class="relative">
@@ -100,7 +95,13 @@
             </div>
         </div>
 
+        <input type="text" placeholder="Judul Ticket" class="w-full border rounded-lg px-4 py-2 mb-3"
+            x-model="form.title">
+
+        <textarea placeholder="Deskripsi" class="w-full border rounded-lg px-4 py-2 mb-3" x-model="form.description"></textarea>
+
         <div class="flex justify-end gap-2">
+            <button @click="$dispatch('close-modal', 'create-ticket')"
                 class="px-4 py-2 border rounded-lg hover:bg-gray-50">
                 Cancel
             </button>
@@ -141,11 +142,6 @@
 
         <input type="hidden" x-model="form.id">
 
-        <input type="text" placeholder="Judul Ticket" class="w-full border rounded-lg px-4 py-2 mb-3"
-            x-model="form.title">
-
-        <textarea placeholder="Deskripsi" class="w-full border rounded-lg px-4 py-2 mb-3" x-model="form.description"></textarea>
-
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
             <div class="relative">
@@ -160,7 +156,7 @@
                 </button>
 
                 <div x-show="unitDropdownOpen" x-transition.origin-top.duration-200ms
-                    class="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-xl max-h-60 overflow-hidden"
+                    class="absolute z-[9999] w-full mt-1 bg-white border rounded-lg shadow-xl max-h-60 overflow-visible"
                     style="display: none;">
                     <div class="p-2 border-b bg-gray-50">
                         <div class="relative">
@@ -195,6 +191,11 @@
                 </div>
             </div>
         </div>
+
+        <input type="text" placeholder="Judul Ticket" class="w-full border rounded-lg px-4 py-2 mb-3"
+            x-model="form.title">
+
+        <textarea placeholder="Deskripsi" class="w-full border rounded-lg px-4 py-2 mb-3" x-model="form.description"></textarea>
 
         <select class="w-full border rounded-lg px-4 py-2 mb-4" x-model="form.status">
             <option value="open">Open</option>

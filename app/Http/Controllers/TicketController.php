@@ -52,9 +52,9 @@ class TicketController extends Controller
     public function data(Request $request)
     {
         return response()->json([
-            'open' => Ticket::with('unit')->where('status', 'open')->latest()->get(),
-            'progress' => Ticket::with('unit')->where('status', 'in_progress')->latest()->get(),
-            'closed' => Ticket::with('unit')->where('status', 'closed')->latest()->get(),
+            'open' => Ticket::with(['unit', 'user'])->where('status', 'open')->latest()->get(),
+            'progress' => Ticket::with(['unit', 'user'])->where('status', 'in_progress')->latest()->get(),
+            'closed' => Ticket::with(['unit', 'user'])->where('status', 'closed')->latest()->get(),
         ]);
     }
     /**
@@ -62,7 +62,7 @@ class TicketController extends Controller
      */
     public function show(Ticket $ticket)
     {
-        $ticket->load('replies.user');
+        $ticket->load(['replies.user', 'user']);
 
         return view('tickets.show', [
             'title' => 'Detail Ticket',
@@ -83,10 +83,26 @@ class TicketController extends Controller
      */
     public function update(Request $request, Ticket $ticket)
     {
+        // Check if user is admin or the ticket owner
+        if (!Auth::user()->isAdmin() && $ticket->user_id !== Auth::id()) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+            return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk mengedit ticket ini.');
+        }
+
+        // Regular users can only edit tickets with 'open' status
+        if (!Auth::user()->isAdmin() && $ticket->status !== 'open') {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Anda hanya dapat mengedit ticket yang berstatus Open'], 403);
+            }
+            return redirect()->back()->with('error', 'Anda hanya dapat mengedit ticket yang berstatus Open.');
+        }
+
         $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'status' => 'required|in:open,in_progress,closed',
+            'title' => 'sometimes|required|string|max:255',
+            'description' => 'sometimes|required|string',
+            'status' => 'sometimes|required|in:open,in_progress,closed',
             'unit_id' => 'nullable|exists:units,id',
         ]);
 
@@ -100,10 +116,37 @@ class TicketController extends Controller
     }
 
     /**
+     * Update ticket status only.
+     */
+    public function updateStatus(Request $request, Ticket $ticket)
+    {
+        // Check if user is admin or the ticket owner
+        if (!Auth::user()->isAdmin() && $ticket->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'status' => 'required|in:open,in_progress,closed',
+        ]);
+
+        $ticket->update(['status' => $request->status]);
+
+        return response()->json(['message' => 'Status updated successfully']);
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Ticket $ticket)
     {
+        // Check if user is admin or the ticket owner
+        if (!Auth::user()->isAdmin() && $ticket->user_id !== Auth::id()) {
+            if (request()->expectsJson()) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+            return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk menghapus ticket ini.');
+        }
+
         $ticket->delete();
 
         if (request()->expectsJson()) {

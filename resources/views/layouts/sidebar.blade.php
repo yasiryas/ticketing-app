@@ -42,16 +42,18 @@
             <span x-show="sidebarOpen">Tickets</span>
         </a>
 
-        <!-- Units -->
-        <a href="{{ route('units.index') }}" title="Units"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg transition
+        <!-- Units - Admin Only -->
+        @if (auth()->user()->isAdmin())
+            <a href="{{ route('units.index') }}" title="Units"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg transition
            {{ request()->routeIs('units.*')
                ? 'bg-indigo-50 text-indigo-600 font-semibold'
                : 'text-gray-600 hover:bg-gray-100' }}">
 
-            <i class="fa-solid fa-building w-5 text-center"></i>
-            <span x-show="sidebarOpen">Units</span>
-        </a>
+                <i class="fa-solid fa-building w-5 text-center"></i>
+                <span x-show="sidebarOpen">Units</span>
+            </a>
+        @endif
 
     </nav>
 
@@ -62,7 +64,9 @@
             <i class="fa-solid fa-user-circle text-xl text-gray-400"></i>
             <div x-show="sidebarOpen">
                 <p class="font-semibold">{{ auth()->user()->name }}</p>
-                <p class="text-xs text-gray-500">{{ auth()->user()->email }}</p>
+                <p class="text-xs text-gray-500">
+                    {{ auth()->user()->isAdmin() ? 'Admin' : 'User' }}
+                </p>
             </div>
         </div>
 

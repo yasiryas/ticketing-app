@@ -12,6 +12,18 @@ export default function ticketBoard() {
 
         deleteId: null,
 
+        detailTicket: null,
+        showDetail: false,
+
+        // User info - will be set from blade template
+        get currentUserId() {
+            return window.currentUserId || null
+        },
+
+        get isAdmin() {
+            return window.isAdmin || false
+        },
+
         init() {
             this.fetchTickets()
 
@@ -87,6 +99,15 @@ export default function ticketBoard() {
         },
 
         editTicket(ticket) {
+            // Check if user can edit this ticket
+            if (!this.canEditTicket(ticket)) {
+                window.dispatchEvent(new CustomEvent('toast', {
+                    detail: 'Anda tidak memiliki izin untuk mengedit ticket ini.',
+                    type: 'error'
+                }))
+                return
+            }
+
             window.editForm = {
                 id: ticket.id,
                 title: ticket.title,
@@ -101,6 +122,30 @@ export default function ticketBoard() {
             setTimeout(() => {
                 window.dispatchEvent(new CustomEvent('open-edit-modal'))
             }, 100)
+        },
+
+        canEditTicket(ticket) {
+            // Admin can edit any ticket
+            if (this.isAdmin) return true
+
+            // Regular user can only edit their own tickets with 'open' status
+            return ticket.user_id === this.currentUserId && ticket.status === 'open'
+        },
+
+        canDeleteTicket(ticket) {
+            // Admin can delete any ticket
+            if (this.isAdmin) return true
+
+            // Regular user can only delete their own tickets with 'open' status
+            return ticket.user_id === this.currentUserId && ticket.status === 'open'
+        },
+
+        canUpdateStatus(ticket) {
+            // Admin can update status of any ticket
+            if (this.isAdmin) return true
+
+            // Regular user can only update status of their own tickets
+            return ticket.user_id === this.currentUserId
         },
 
         updateTicket() {
@@ -153,6 +198,97 @@ export default function ticketBoard() {
                     type: 'error'
                 }))
             })
+        },
+
+        moveTicketLeft(ticket) {
+            // Check if user can update status
+            if (!this.canUpdateStatus(ticket)) {
+                window.dispatchEvent(new CustomEvent('toast', {
+                    detail: 'Anda tidak memiliki izin untuk mengubah status ticket ini.',
+                    type: 'error'
+                }))
+                return
+            }
+
+            // Status flow: open -> in_progress -> closed
+            // Left arrow: go back to previous status
+            let newStatus = null
+            if (ticket.status === 'in_progress') {
+                newStatus = 'open'
+            } else if (ticket.status === 'closed') {
+                newStatus = 'in_progress'
+            }
+
+            if (newStatus) {
+                this.updateTicketStatus(ticket.id, newStatus)
+            }
+        },
+
+        moveTicketRight(ticket) {
+            // Check if user can update status
+            if (!this.canUpdateStatus(ticket)) {
+                window.dispatchEvent(new CustomEvent('toast', {
+                    detail: 'Anda tidak memiliki izin untuk mengubah status ticket ini.',
+                    type: 'error'
+                }))
+                return
+            }
+
+            // Status flow: open -> in_progress -> closed
+            // Right arrow: go to next status
+            let newStatus = null
+            if (ticket.status === 'open') {
+                newStatus = 'in_progress'
+            } else if (ticket.status === 'in_progress') {
+                newStatus = 'closed'
+            }
+
+            if (newStatus) {
+                this.updateTicketStatus(ticket.id, newStatus)
+            }
+        },
+
+        updateTicketStatus(id, newStatus) {
+            fetch(`/tickets/${id}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document
+                        .querySelector('meta[name="csrf-token"]')
+                        .content
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(async res => {
+                const data = await res.json().catch(() => ({}))
+                if (!res.ok) throw data
+
+                window.dispatchEvent(new CustomEvent('toast', {
+                    detail: 'Status ticket berhasil diupdate!',
+                    type: 'success'
+                }))
+
+                this.fetchTickets()
+                this.showDetail = false
+                this.detailTicket = null
+            })
+            .catch(err => {
+                window.dispatchEvent(new CustomEvent('toast', {
+                    detail: 'Gagal mengupdate status',
+                    type: 'error'
+                }))
+            })
+        },
+
+        openDetail(ticket) {
+            this.detailTicket = ticket
+            this.showDetail = true
+        },
+
+        closeDetail() {
+            this.showDetail = false
+            this.detailTicket = null
         },
 
         deleteTicket(id) {
