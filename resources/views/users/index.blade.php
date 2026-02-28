@@ -54,7 +54,7 @@
                             <th class="px-6 py-4 text-left">Email</th>
                             <th class="px-6 py-4 text-left">Role</th>
                             <th class="px-6 py-4 text-left">Dibuat</th>
-                            <th class="px-6 py-4 text-right">Aksi</th>
+                            <th class="px-6 py-4 text-left">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -101,8 +101,8 @@
                                         x-text="user.role === 'admin' ? 'Admin' : 'User'"></span>
                                 </td>
                                 <td class="px-6 py-4 text-gray-500 text-xs" x-text="formatDate(user.created_at)"></td>
-                                <td class="px-6 py-4 text-right">
-                                    <div class="flex justify-end gap-2">
+                                <td class="px-6 py-4 text-left">
+                                    <div class="flex gap-2">
                                         <button @click="editUser(user)"
                                             class="px-3 py-1.5 text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-lg transition-colors duration-150 flex items-center gap-1">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor"

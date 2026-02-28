@@ -4,11 +4,14 @@
 
     <!-- Brand -->
     <div class="px-7 py-5 border-b flex item-left justify-between">
-        <div x-show="sidebarOpen" class="flex items-center flex-col">
-            <h1 class="text-xl font-bold text-indigo-600">
-                Ticketing
-            </h1>
-            <p class="text-xs text-gray-500">System Support</p>
+        <div x-show="sidebarOpen" class="flex items-center gap-2">
+            <x-application-logo class="w-8 h-8 text-indigo-600" />
+            <div class="flex flex-col">
+                <h1 class="text-xl font-bold text-indigo-600">
+                    Ticketing
+                </h1>
+                <p class="text-xs text-gray-500">System Support</p>
+            </div>
         </div>
 
         <!-- Toggle -->
@@ -66,6 +69,16 @@
             </a>
         @endif
 
+        <!-- Profile - All Users -->
+        <a href="{{ route('profile.edit') }}" title="Profile"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg transition
+           {{ request()->routeIs('profile.edit')
+               ? 'bg-indigo-50 text-indigo-600 font-semibold'
+               : 'text-gray-600 hover:bg-gray-100' }}">
+
+            <i class="fa-solid fa-user w-5 text-center"></i>
+            <span x-show="sidebarOpen">Profile</span>
+        </a>
     </nav>
 
     <!-- User -->
@@ -73,8 +86,8 @@
 
         <div class="flex items-center gap-3 px-4 py-3 rounded-lg mb-3">
             <i class="fa-solid fa-user-circle text-xl text-gray-400"></i>
-            <div x-show="sidebarOpen">
-                <p class="font-semibold">{{ auth()->user()->name }}</p>
+            <div x-show="sidebarOpen" class="flex-1 min-w-0">
+                <p class="font-semibold truncate">{{ auth()->user()->name }}</p>
                 <p class="text-xs text-gray-500">
                     {{ auth()->user()->isAdmin() ? 'Admin' : 'User' }}
                 </p>
