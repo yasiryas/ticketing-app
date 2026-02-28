@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Ticket;
 use App\Models\Unit;
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -21,6 +20,12 @@ class DashboardController extends Controller
         $open = Ticket::where('status', 'open')->count();
         $in_progress = Ticket::where('status', 'in_progress')->count();
         $closed = Ticket::where('status', 'closed')->count();
+
+        $isAdmin = false;
+        if (Auth::check()) {
+            $user = Auth::user();
+            $isAdmin = isset($user->role) && $user->role === 'admin';
+        }
 
         // Get ticket count by unit (for chart)
         $unitStats = Unit::withCount('tickets')
@@ -60,7 +65,7 @@ class DashboardController extends Controller
         }
 
         // Cek apakah user login sebelum memanggil isAdmin()
-        $data['isAdmin'] = Auth::check() ? Auth::user()->isAdmin() : false;
+        $data['isAdmin'] = $isAdmin;
 
         return view('dashboard', $data);
     }
