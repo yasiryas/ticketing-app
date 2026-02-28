@@ -1,5 +1,75 @@
 <x-app-layout>
-    <div class="max-w-7xl mx-auto p-6">
+    @php
+        $isAdmin = $isAdmin ?? false;
+        $currentUserId = $currentUserId ?? null;
+    @endphp
+
+    <script>
+        window.currentUserId = {{ $currentUserId }};
+        window.isAdmin = {{ $isAdmin ? 'true' : 'false' }};
+
+        function dashboardDetail() {
+            return {
+                detailTicket: null,
+                showDetail: false,
+
+                get isAdmin() {
+                    return window.isAdmin || false;
+                },
+
+                get currentUserId() {
+                    return window.currentUserId || null;
+                },
+
+                openDetail(ticket) {
+                    this.detailTicket = ticket;
+                    this.showDetail = true;
+                },
+
+                closeDetail() {
+                    this.showDetail = false;
+                    this.detailTicket = null;
+                },
+
+                updateTicketStatus(id, newStatus) {
+                    fetch(`/tickets/${id}/status`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({
+                                status: newStatus
+                            })
+                        })
+                        .then(async res => {
+                            const data = await res.json().catch(() => ({}));
+                            if (!res.ok) throw data;
+
+                            window.dispatchEvent(new CustomEvent('toast', {
+                                detail: 'Status ticket berhasil diupdate!',
+                                type: 'success'
+                            }));
+
+                            if (this.detailTicket && this.detailTicket.id === id) {
+                                this.detailTicket.status = newStatus;
+                            }
+
+                            window.location.reload();
+                        })
+                        .catch(err => {
+                            window.dispatchEvent(new CustomEvent('toast', {
+                                detail: 'Gagal mengupdate status',
+                                type: 'error'
+                            }));
+                        });
+                }
+            };
+        }
+    </script>
+
+    <div class="max-w-7xl mx-auto p-6" x-data="dashboardDetail()">
 
         <div class="flex justify-between mb-6">
             <h1 class="text-2xl font-bold">{{ $title }}</h1>
@@ -252,10 +322,10 @@
                                 <span class="text-sm text-gray-500">{{ $ticket->created_at->format('d M Y') }}</span>
                             </td>
                             <td class="p-4">
-                                <a href="{{ route('tickets.show', $ticket) }}"
+                                <button @click="openDetail({{ json_encode($ticket) }})"
                                     class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">
                                     Detail
-                                </a>
+                                </button>
                             </td>
                         </tr>
                     @empty
@@ -273,5 +343,116 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Detail Modal -->
+        <template x-teleport="body">
+            <div x-show="showDetail" x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                x-cloak>
+                <!-- Overlay -->
+                <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeDetail()"></div>
+
+                <!-- Modal Content -->
+                <div x-show="showDetail" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                    class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+                    @click.stop>
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-xl font-bold">Detail Ticket</h2>
+                            <button @click="closeDetail()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Ticket Info -->
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500">Judul</label>
+                                <p class="text-lg font-semibold" x-text="detailTicket?.title"></p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500">Deskripsi</label>
+                                <p class="text-gray-700" x-text="detailTicket?.description"></p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500">Unit</label>
+                                <p class="text-gray-700" x-text="detailTicket?.unit?.name || '-'"></p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500">Pembuat</label>
+                                <p class="text-gray-700" x-text="detailTicket?.user?.name || '-'"></p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500">Status</label>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                    :class="{
+                                        'bg-blue-100 text-blue-800': detailTicket?.status === 'open',
+                                        'bg-yellow-100 text-yellow-800': detailTicket?.status === 'in_progress',
+                                        'bg-green-100 text-green-800': detailTicket?.status === 'closed'
+                                    }"
+                                    x-text="detailTicket?.status === 'open' ? 'Open' : detailTicket?.status === 'in_progress' ? 'Progress' : 'Closed'">
+                                </span>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500">Dibuat</label>
+                                <p class="text-gray-700 text-sm"
+                                    x-text="detailTicket?.created_at ? new Date(detailTicket.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'">
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Status Update Buttons - Only show for admin or ticket owner -->
+                        <template x-if="isAdmin || detailTicket?.user_id === currentUserId">
+                            <div class="mt-6">
+                                <label class="block text-sm font-medium text-gray-500 mb-2">Update Status</label>
+                                <div class="flex gap-2">
+                                    <button @click="updateTicketStatus(detailTicket?.id, 'open')"
+                                        class="flex-1 px-3 py-2 text-sm rounded-lg border transition-colors"
+                                        :class="detailTicket?.status === 'open' ?
+                                            'bg-blue-600 text-white border-blue-600' :
+                                            'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'">
+                                        Open
+                                    </button>
+                                    <button @click="updateTicketStatus(detailTicket?.id, 'in_progress')"
+                                        class="flex-1 px-3 py-2 text-sm rounded-lg border transition-colors"
+                                        :class="detailTicket?.status === 'in_progress' ?
+                                            'bg-yellow-500 text-white border-yellow-500' :
+                                            'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'">
+                                        Progress
+                                    </button>
+                                    <button @click="updateTicketStatus(detailTicket?.id, 'closed')"
+                                        class="flex-1 px-3 py-2 text-sm rounded-lg border transition-colors"
+                                        :class="detailTicket?.status === 'closed' ?
+                                            'bg-green-600 text-white border-green-600' :
+                                            'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'">
+                                        Closed
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+
+                        <div class="mt-6 flex justify-end">
+                            <button @click="closeDetail()"
+                                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
     </div>
 </x-app-layout>

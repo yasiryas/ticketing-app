@@ -1,4 +1,8 @@
 <x-app-layout>
+    <script>
+        window.currentUserId = {{ Auth::check() ? Auth::id() : 'null' }};
+        window.isAdmin = {{ Auth::check() && Auth::user()->isAdmin() ? 'true' : 'false' }};
+    </script>
 
     {{-- HEADER --}}
     <div class="flex justify-between items-center mb-6">
@@ -25,7 +29,46 @@
     </div>
 
     {{-- CONTENT --}}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6"
+        x-data="{
+            ticket: @json($ticket),
+            editTicket() {
+                window.location.href = '{{ route('tickets.index') }}';
+            },
+            deleteTicket() {
+                if (confirm('Apakah Anda yakin ingin menghapus ticket ini?')) {
+                    fetch('{{ route('tickets.destroy', $ticket) }}', {
+                                method: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'), 'Accept' : 'application/json' , 'Content-Type'
+        : 'application/json' } }).then(response=> {
+        if (response.ok) {
+        window.location.href = '{{ route('tickets.index') }}';
+        } else {
+        alert('Gagal menghapus ticket');
+        }
+        });
+        }
+        },
+        updateStatus(status) {
+        fetch('{{ route('tickets.updateStatus', $ticket) }}', {
+        method: 'PATCH',
+        headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content'),
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: status })
+        }).then(response => {
+        if (response.ok) {
+        this.ticket.status = status;
+        location.reload();
+        } else {
+        alert('Gagal mengubah status');
+        }
+        });
+        }
+        }">
 
         {{-- LEFT: DETAIL --}}
         <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">

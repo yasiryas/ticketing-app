@@ -2,23 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Dashboard;
 use App\Models\Ticket;
 use App\Models\Unit;
-use Illuminate\Http\Request;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display the dashboard with ticket statistics.
      */
     public function index()
     {
-        $total = Ticket::count() ?: 1;
+        $totalTickets = Ticket::count(); // Avoid division by zero
+
+        $total = $totalTickets > 0 ? $totalTickets : 1; // Ensure total is at least 1 to prevent division by zero
 
         $open = Ticket::where('status', 'open')->count();
-        $in_progress =  Ticket::where('status', 'in_progress')->count();
+        $in_progress = Ticket::where('status', 'in_progress')->count();
         $closed = Ticket::where('status', 'closed')->count();
 
         // Get ticket count by unit (for chart)
@@ -27,77 +28,40 @@ class DashboardController extends Controller
             ->orderByDesc('tickets_count')
             ->get();
 
-        // Get user's own tickets if not admin
-        $userTickets = [];
-        if (!Auth::user()->isAdmin()) {
-            $userTickets = Ticket::where('user_id', Auth::id())
-                ->latest()
-                ->take(5)
-                ->get();
-        }
+        // Get latest tickets with relationships for the table
+        $latestTickets = Ticket::with(['unit', 'user'])->latest()->take(5)->get();
 
-        return view('dashboard', [
+        // Data untuk dikirim ke view
+        $data = [
             'title' => 'Dashboard',
             'total' => $total,
+            'totalTickets' => $totalTickets, // Kirim juga nilai asli
             'open' => $open,
             'in_progress' => $in_progress,
             'closed' => $closed,
-            'latestTickets' => Ticket::with(['unit', 'user'])->latest()->take(5)->get(),
-            'userTickets' => $userTickets,
+            'latestTickets' => $latestTickets,
             'unitStats' => $unitStats,
-            'progress' => [
-                'open' => round(($open / $total) * 100),
-                'in_progress' => round(($in_progress / $total) * 100),
-                'closed' => round(($closed / $total) * 100),
-            ]
-        ]);
-    }
+            'currentUserId' => Auth::id(),
+        ];
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        // Hitung persentase hanya jika ada tiket
+        if ($totalTickets > 0) {
+            $data['progress'] = [
+                'open' => round(($open / $totalTickets) * 100),
+                'in_progress' => round(($in_progress / $totalTickets) * 100),
+                'closed' => round(($closed / $totalTickets) * 100),
+            ];
+        } else {
+            $data['progress'] = [
+                'open' => 0,
+                'in_progress' => 0,
+                'closed' => 0,
+            ];
+        }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        // Cek apakah user login sebelum memanggil isAdmin()
+        $data['isAdmin'] = Auth::check() ? Auth::user()->isAdmin() : false;
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Dashboard $dashboard)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Dashboard $dashboard)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Dashboard $dashboard)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Dashboard $dashboard)
-    {
-        //
+        return view('dashboard', $data);
     }
 }

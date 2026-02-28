@@ -10,16 +10,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class UnitController extends Controller
 {
-    public function __construct()
-    {
-        // Only admin can access Unit management
-        $this->middleware(function ($request, $next) {
-            if (!Auth::user()->isAdmin()) {
-                abort(403, 'Unauthorized access. Admin only.');
-            }
-            return $next($request);
-        });
-    }
+    public function __construct() {}
 
     /**
      * Display a listing of the resource.
@@ -96,18 +87,15 @@ class UnitController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Unit $unit)
     {
-        $unit = Unit::findOrFail($id);
         $unit->delete();
-
-        if (request()->expectsJson()) {
-            return response()->json(['message' => 'Unit deleted successfully']);
-        }
-
-        return redirect()->route('units.index')->with('success', 'Unit deleted successfully.');
+        return response()->json(['message' => 'Unit deleted successfully']);
     }
 
+    /**
+     * Get data for DataTables.
+     */
     public function data(Request $request)
     {
         $query = Unit::query();
@@ -134,11 +122,5 @@ class UnitController extends Controller
                 'total' => $units->total(),
             ]
         ]);
-    }
-
-    public function destroyUnit(Unit $unit)
-    {
-        $unit->delete();
-        return response()->json(['message' => 'Unit deleted successfully']);
     }
 }
