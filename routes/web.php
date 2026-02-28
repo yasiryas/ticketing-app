@@ -4,30 +4,14 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\UnitController;
+use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
-Route::get('/', function () {
-    $total = \App\Models\Ticket::count() ?: 1;
-    $open = \App\Models\Ticket::where('status', 'open')->count();
-    $in_progress = \App\Models\Ticket::where('status', 'in_progress')->count();
-    $closed = \App\Models\Ticket::where('status', 'closed')->count();
-
-    $tickets = \App\Models\Ticket::with(['unit', 'user'])->latest()->take(50)->get();
-
-    return view('welcome', [
-        'total' => $total,
-        'open' => $open,
-        'in_progress' => $in_progress,
-        'closed' => $closed,
-        'tickets' => $tickets,
-        'progress' => [
-            'open' => round(($open / $total) * 100),
-            'in_progress' => round(($in_progress / $total) * 100),
-            'closed' => round(($closed / $total) * 100),
-        ]
-    ]);
+Route::controller(WelcomeController::class)->group(function () {
+    Route::get('/', 'index')->name('welcome');
 });
+
 
 // Authenticated routes
 Route::middleware('auth')->group(function () {
