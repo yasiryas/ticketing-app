@@ -53,6 +53,17 @@
                 <i class="fa-solid fa-building w-5 text-center"></i>
                 <span x-show="sidebarOpen">Units</span>
             </a>
+
+            <!-- Users - Admin Only -->
+            <a href="{{ route('users.index') }}" title="Users"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg transition
+           {{ request()->routeIs('users.*')
+               ? 'bg-indigo-50 text-indigo-600 font-semibold'
+               : 'text-gray-600 hover:bg-gray-100' }}">
+
+                <i class="fa-solid fa-users w-5 text-center"></i>
+                <span x-show="sidebarOpen">Users</span>
+            </a>
         @endif
 
     </nav>
